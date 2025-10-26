@@ -9,9 +9,17 @@ public class Account
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdatedAt { get; private set; }
 
-    // Constructor for creating new accounts
     public Account(string accountNumber, string accountHolderName, decimal initialBalance)
     {
+        if (string.IsNullOrWhiteSpace(accountNumber))
+            throw new Exception("Account number cannot be empty");
+        
+        if (string.IsNullOrWhiteSpace(accountHolderName))
+            throw new Exception("Account holder name cannot be empty");
+        
+        if (initialBalance < 0)
+            throw new Exception("Initial balance cannot be negative");
+
         Id = Guid.NewGuid();
         AccountNumber = accountNumber;
         AccountHolderName = accountHolderName;
@@ -20,15 +28,25 @@ public class Account
         UpdatedAt = DateTime.UtcNow;
     }
 
-    // Constructor for reconstitution from storage
-    private Account(Guid id, string accountNumber, string accountHolderName, decimal balance, DateTime createdAt, DateTime updatedAt)
+    public void Deposit(decimal amount)
     {
-        Id = id;
-        AccountNumber = accountNumber;
-        AccountHolderName = accountHolderName;
-        Balance = balance;
-        CreatedAt = createdAt;
-        UpdatedAt = updatedAt;
+        if (amount <= 0)
+            throw new Exception("Deposit amount must be greater than zero");
+
+        Balance += amount;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void Withdraw(decimal amount)
+    {
+        if (amount <= 0)
+            throw new Exception("Withdrawal amount must be greater than zero");
+
+        if (amount > Balance)
+            throw new Exception($"Insufficient funds. Available: {Balance:C}, Requested: {amount:C}");
+
+        Balance -= amount;
+        UpdatedAt = DateTime.UtcNow;
     }
 }
 

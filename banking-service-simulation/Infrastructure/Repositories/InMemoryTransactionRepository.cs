@@ -15,20 +15,34 @@ public class InMemoryTransactionRepository : ITransactionRepository
 
     public Task<Transaction> AddAsync(Transaction transaction)
     {
-        // TODO: Implement add transaction logic
-        throw new NotImplementedException();
+        lock (_database.Lock)
+        {
+            _database.Transactions.Add(transaction);
+            return Task.FromResult(transaction);
+        }
     }
 
     public Task<IEnumerable<Transaction>> GetByAccountIdAsync(Guid accountId)
     {
-        // TODO: Implement get by account id logic
-        throw new NotImplementedException();
+        lock (_database.Lock)
+        {
+            var transactions = _database.Transactions
+                .Where(t => t.AccountId == accountId || t.RelatedAccountId == accountId)
+                .OrderByDescending(t => t.Timestamp)
+                .ToList();
+            return Task.FromResult<IEnumerable<Transaction>>(transactions);
+        }
     }
 
     public Task<IEnumerable<Transaction>> GetAllAsync()
     {
-        // TODO: Implement get all logic
-        throw new NotImplementedException();
+        lock (_database.Lock)
+        {
+            var transactions = _database.Transactions
+                .OrderByDescending(t => t.Timestamp)
+                .ToList();
+            return Task.FromResult<IEnumerable<Transaction>>(transactions);
+        }
     }
 }
 
